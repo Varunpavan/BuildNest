@@ -1,0 +1,348 @@
+/* ==========================================
+   index.css - colours, fonts and shared pieces
+   Every page uses the variables below, so to
+   re-theme the whole app you only edit :root
+   Idea: a "blueprint" look. Navy sheets, paper
+   with a faint grid, and one orange accent.
+   ========================================== */
+
+:root {
+  --paper: #f4f6fb;
+  --white: #ffffff;
+
+  --navy: #0a1f5c;
+  --navy-deep: #071647;
+  --navy-lift: #12307f;
+
+  --cobalt: #2f55f5;
+  --wash: #e6ecff;
+
+  --orange: #ff6a3d;
+  --orange-hover: #ff7f57;
+
+  --ink: #0b1b4b;
+  --ink-soft: #4c5c8c;
+  --ink-faint: #8d99be;
+
+  --line: rgba(11, 27, 75, 0.13);
+  --line-strong: rgba(11, 27, 75, 0.28);
+  --line-light: rgba(255, 255, 255, 0.16);
+  --grid: rgba(11, 27, 75, 0.055);
+
+  --success: #1fa971;
+  --danger: #c4262b;
+  --danger-wash: #ffe9e7;
+
+  --font-display: 'Bricolage Grotesque', 'Trebuchet MS', sans-serif;
+  --font-body: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-code: 'JetBrains Mono', Consolas, monospace;
+
+  --radius-s: 10px;
+  --radius-m: 16px;
+
+  /* the same side space is used by every section so edges line up */
+  --page-pad: clamp(20px, 5vw, 64px);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ol,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--cobalt);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* paper with a very faint drafting grid */
+.paper-grid {
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  background: transparent;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--orange);
+  color: var(--navy-deep);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 22px -10px rgba(255, 106, 61, 0.7);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--orange-hover);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-dark {
+  background: var(--navy);
+  color: #fff;
+}
+
+.btn-dark:hover:not(:disabled) {
+  background: var(--navy-lift);
+}
+
+/* for buttons that sit on a navy background */
+.btn-outline-light {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.btn-outline-light:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.btn-small {
+  padding: 8px 14px;
+  font-size: 0.875rem;
+}
+
+.btn-large {
+  padding: 16px 30px;
+  font-size: 1.05rem;
+}
+
+/* ---------- small chips ---------- */
+
+.chip {
+  padding: 7px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--white);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.chip:hover {
+  background: var(--wash);
+  border-color: var(--cobalt);
+}
+
+/* ---------- forms ---------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.field input {
+  padding: 13px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+  background: var(--white);
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--cobalt);
+  box-shadow: 0 0 0 4px var(--wash);
+}
+
+.field-hint {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.form-error {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-s);
+  background: var(--danger-wash);
+  color: var(--danger);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ---------- avatar ---------- */
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: var(--navy-deep);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* ---------- loading blocks ---------- */
+
+.screen-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.loader-blocks,
+.working-blocks {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.loader-blocks span,
+.working-blocks span {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--cobalt);
+  animation: block-hop 0.9s ease-in-out infinite;
+}
+
+.loader-blocks span:nth-child(2),
+.working-blocks span:nth-child(2) {
+  animation-delay: 0.15s;
+  background: var(--orange);
+}
+
+.loader-blocks span:nth-child(3),
+.working-blocks span:nth-child(3) {
+  animation-delay: 0.3s;
+  background: var(--navy);
+}
+
+.working-blocks span {
+  width: 9px;
+  height: 9px;
+}
+
+@keyframes block-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ---------- not found / error screen ---------- */
+
+.notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  min-height: 100vh;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.notfound-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: clamp(2.2rem, 6vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.notfound-text {
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

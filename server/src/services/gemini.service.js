@@ -1,0 +1,117 @@
+import { GoogleGenAI } from '@google/genai';
+
+// This is the "brief" we give Gemini every time. A good brief = a better looking page.
+const SYSTEM_INSTRUCTION = `You are NxtBuild, an expert web designer and front-end developer.
+You build complete, good looking, working web pages from a short description.
+
+OUTPUT FORMAT (follow it exactly):
+TITLE: a short project name, 2 to 4 words
+SUMMARY: one friendly sentence telling the user what you built or changed
+---HTML---
+<!DOCTYPE html>
+...the full page...
+
+CODE RULES:
+- Return ONE complete HTML file. Put all CSS inside a <style> tag and all JavaScript inside a <script> tag.
+- Do not wrap the answer in markdown code fences. Do not add any text after the closing </html>.
+- The page runs inside a sandboxed iframe. Do NOT use localStorage, sessionStorage or cookies. Keep any data in plain JavaScript variables.
+- Do not use external JavaScript libraries or frameworks. Google Fonts through a <link> tag is allowed.
+- Do not use image URLs. Make visuals with CSS gradients, inline SVG, shapes and emoji instead.
+- Make the page fully responsive and make interactive parts (forms, buttons, tabs, calculators) actually work.
+- Use semantic HTML, readable class names and a few short comments.
+
+DESIGN RULES:
+- Choose a clear visual direction that fits the subject: a specific colour palette, one or two characterful fonts, generous spacing.
+- Write real, specific copy for the subject. Never use lorem ipsum.
+- Avoid generic purple gradients, identical rows of rounded cards and stock template layouts.
+- Keep strong contrast so text is easy to read.
+
+WHEN CHANGING AN EXISTING PAGE:
+- You will receive the current page code. Apply only the change that was asked and keep everything else the same.
+- Still return the full updated page, not just the changed part.`;
+
+const getClient = () => {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY is missing in the server .env file');
+  }
+  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+};
+
+// Sometimes the model still wraps the code in ```html ... ``` so we remove that
+const removeCodeFences = (text) => {
+  return text
+    .replace(/^```(?:html)?\s*/i, '')
+    .replace(/```\s*$/, '')
+    .trim();
+};
+
+// Splits the model's answer into title, summary and html
+const readReply = (rawText) => {
+  const marker = '---HTML---';
+  const markerIndex = rawText.indexOf(marker);
+
+  let header = '';
+  let html = rawText;
+
+  if (markerIndex !== -1) {
+    header = rawText.slice(0, markerIndex);
+    html = rawText.slice(markerIndex + marker.length);
+  }
+
+  html = removeCodeFences(html.trim());
+
+  // if the model wrote some chat text before the page, cut it off
+  const doctypeIndex = html.toLowerCase().indexOf('<!doctype');
+  if (doctypeIndex > 0) {
+    html = html.slice(doctypeIndex);
+  }
+
+  if (!html.toLowerCase().includes('<html')) {
+    throw new Error('The AI reply did not contain a web page');
+  }
+
+  const titleMatch = header.match(/TITLE:\s*(.+)/i);
+  const summaryMatch = header.match(/SUMMARY:\s*(.+)/i);
+
+  return {
+    title: titleMatch ? titleMatch[1].trim() : '',
+    summary: summaryMatch ? summaryMatch[1].trim() : 'Done! Your page is ready. Tell me what to change.',
+    html,
+  };
+};
+
+// prompt = what the user just asked
+// currentCode = the page built so far (empty string for a new project)
+// history = the last few chat messages, so Gemini understands what "make it bigger" refers to
+export const generatePage = async ({ prompt, currentCode, history }) => {
+  const ai = getClient();
+
+  let userMessage = '';
+
+  if (currentCode) {
+    userMessage += `This is the current page:\n\n${currentCode}\n\n`;
+
+    if (history.length > 0) {
+      const chatText = history
+        .map((message) => `${message.role === 'user' ? 'User' : 'You'}: ${message.text}`)
+        .join('\n');
+      userMessage += `Recent conversation:\n${chatText}\n\n`;
+    }
+
+    userMessage += `Change request: ${prompt}`;
+  } else {
+    userMessage = `Build this page: ${prompt}`;
+  }
+
+  const response = await ai.models.generateContent({
+    model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+    contents: userMessage,
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
+      temperature: 0.9,
+      maxOutputTokens: 30000,
+    },
+  });
+
+  return readReply(response.text || '');
+};

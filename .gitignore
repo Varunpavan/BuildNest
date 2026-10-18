@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Environment files (keep API keys and passwords safe)
+.env
+.env*
+server/.env
+client/.env
+!.env.example
+!server/.env.example
+!client/.env.example
+
+# Build output
+dist/
+dist-ssr/
+
+# Logs & System files
+*.log
+.DS_Store

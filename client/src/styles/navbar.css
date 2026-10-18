@@ -1,0 +1,100 @@
+/* logo (used on every page) and the app navbar */
+
+.logo {
+  --logo-edge: var(--navy);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+/* use <Logo light /> on navy backgrounds */
+.logo-light {
+  --logo-edge: #fff;
+}
+
+/* the mark is two blocks, one placed on top of the other */
+.logo-mark {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.logo-block {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--logo-edge);
+  border-radius: 5px;
+}
+
+.logo-block-one {
+  top: 0;
+  left: 0;
+  background: var(--cobalt);
+}
+
+.logo-block-two {
+  right: 0;
+  bottom: 0;
+  background: var(--orange);
+}
+
+.logo-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-stretch: 90%;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+
+.logo-light .logo-name {
+  color: #fff;
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* on wide screens the bar lines up with the 1320px page content below it */
+  padding: 14px max(var(--page-pad), calc((100% - 1320px) / 2 + var(--page-pad)));
+  background: var(--navy);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.navbar-link {
+  font-weight: 500;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.navbar-link:hover {
+  color: #fff;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.navbar :focus-visible {
+  outline-color: var(--orange);
+}
+
+@media (max-width: 640px) {
+  .navbar-link,
+  .navbar-username {
+    display: none;
+  }
+}

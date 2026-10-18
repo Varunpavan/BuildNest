@@ -1,0 +1,212 @@
+/* ==========================================
+   login / signup page
+   ========================================== */
+
+.login-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.login-side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 40px clamp(28px, 5vw, 72px);
+  background: var(--navy);
+  color: #fff;
+  overflow: hidden;
+}
+
+/* the same drafting grid as the landing hero */
+.login-side::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 56px 56px;
+  pointer-events: none;
+}
+
+.login-side > * {
+  position: relative;
+}
+
+.login-side-body {
+  max-width: 460px;
+}
+
+.login-side-title {
+  margin-bottom: 18px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 80%;
+  font-size: clamp(2.4rem, 4.6vw, 4rem);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.login-side-text {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 1.05rem;
+}
+
+/* three sheets stacked like pages being drafted */
+.login-sheets {
+  position: relative;
+  height: 250px;
+}
+
+.login-sheet {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 14px;
+}
+
+.login-sheet-back {
+  left: 150px;
+  bottom: 70px;
+  width: 230px;
+  height: 140px;
+  border: 1px solid var(--line-light);
+  background: var(--navy-lift);
+}
+
+.sheet-bar {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.sheet-bar-short {
+  width: 55%;
+}
+
+.login-sheet-front {
+  left: 0;
+  bottom: 0;
+  width: 270px;
+  height: 180px;
+  background: var(--white);
+  box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.6);
+}
+
+.sheet-nav {
+  height: 8px;
+  border-radius: 3px;
+  background: #cfd9ff;
+}
+
+.sheet-hero {
+  display: flex;
+  align-items: flex-end;
+  height: 70px;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--navy);
+}
+
+.sheet-hero i {
+  width: 48px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--orange);
+}
+
+.sheet-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.sheet-tiles i {
+  height: 26px;
+  border-radius: 6px;
+  background: #cfd9ff;
+}
+
+.login-sheet-dashed {
+  right: 20px;
+  bottom: 150px;
+  width: 120px;
+  height: 64px;
+  border: 2px dashed var(--orange);
+  border-radius: 12px;
+}
+
+.login-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.login-form {
+  width: min(400px, 100%);
+}
+
+.login-title {
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 2.6rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.login-subtitle {
+  margin-bottom: 30px;
+  color: var(--ink-soft);
+}
+
+.login-submit {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.login-switch {
+  margin-top: 26px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.login-switch-btn {
+  margin-left: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--cobalt);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 860px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .login-side {
+    gap: 24px;
+    padding-top: 28px;
+    padding-bottom: 32px;
+  }
+
+  .login-sheets {
+    display: none;
+  }
+
+  .login-side-title {
+    font-size: 2.3rem;
+  }
+}
