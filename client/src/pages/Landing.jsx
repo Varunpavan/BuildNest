@@ -161,7 +161,7 @@ function Landing() {
                   className="prompt-input"
                   rows="3"
                   maxLength="2000"
-                  placeholder="A landing page for my dad's gold covering shop, with a gallery and a contact form"
+                  placeholder="A sleek landing page for a specialty coffee shop with a menu, customer reviews, and a visit section"
                   value={prompt}
                   onChange={handlePromptChange}
                   onKeyDown={handlePromptKey}
