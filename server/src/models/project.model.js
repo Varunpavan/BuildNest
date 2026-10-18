@@ -22,7 +22,7 @@ const projectSchema = new mongoose.Schema(
       maxlength: [80, 'Title can be 80 characters at most'],
       default: 'Untitled project',
     },
-    // the full HTML page (with CSS and JS inside it) that the AI built
+    // generated full HTML page with inline CSS and JS
     code: { type: String, default: '' },
     messages: [messageSchema],
   },

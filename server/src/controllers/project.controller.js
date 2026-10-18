@@ -72,7 +72,7 @@ export const generateProject = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Describe what you want to build or change first.' });
   }
 
-  // each request costs money, so we keep prompts at a sensible size
+  // limit prompt length to prevent payload overflow
   if (prompt.length > 2000) {
     return res.status(400).json({ success: false, message: 'That prompt is too long. Keep it under 2000 characters.' });
   }

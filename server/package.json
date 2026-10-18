@@ -1,7 +1,7 @@
 {
   "name": "nxtbuild-server",
   "version": "1.0.0",
-  "description": "AI-Powered Web App Builder Backend - MERN Stack with Gemini",
+  "description": "Backend API for NxtBuild web page builder",
   "license": "ISC",
   "type": "module",
   "scripts": {

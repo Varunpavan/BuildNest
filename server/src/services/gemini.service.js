@@ -1,6 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 
-// This is the "brief" we give Gemini every time. A good brief = a better looking page.
+// System prompt and output rules for web page generation
 const SYSTEM_INSTRUCTION = `You are NxtBuild, an expert web designer and front-end developer.
 You build complete, good looking, working web pages from a short description.
 
