@@ -3,15 +3,12 @@ import '../styles/landing.css'
 
 let demoPrompt = 'A landing page for a neighbourhood bakery with an order form'
 
-// A small sample build on the landing page: the prompt types itself,
-// then the bakery page appears one block at a time, then a phone preview slides in.
 function HeroDemo() {
   const [typedText, setTypedText] = useState('')
   const [step, setStep] = useState(0)
   const [runCount, setRunCount] = useState(0)
 
   useEffect(() => {
-    // people who turned off animations just get the finished page
     let skipMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (skipMotion) {
       setTypedText(demoPrompt)
@@ -41,19 +38,17 @@ function HeroDemo() {
       }
     }, 34)
 
-    // stop the timers if the component goes away or we replay
     return () => {
       clearInterval(typingTimer)
       stepTimers.forEach((timer) => clearTimeout(timer))
     }
   }, [runCount])
 
-  let handleReplay = () => {
+  function handleReplay() {
     setRunCount(runCount + 1)
   }
 
-  // a block stays hidden until its step arrives, and glows while it is the newest one
-  let blockClass = (name, number) => {
+  function blockClass(name, number) {
     let classes = 'demo-block ' + name
     if (step >= number) classes = classes + ' shown'
     if (step === number) classes = classes + ' is-new'
@@ -120,7 +115,6 @@ function HeroDemo() {
         </div>
       </div>
 
-      {/* the same page on a phone, it slides in when the build is done */}
       <div className={step === 5 ? 'demo-phone shown' : 'demo-phone'} aria-hidden="true">
         <div className="demo-phone-screen">
           <strong>Crumb &amp; Co.</strong>

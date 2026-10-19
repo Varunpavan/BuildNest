@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 
-const userSchema = new mongoose.Schema(
+let userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -15,7 +15,6 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    // select: false means the password is NOT returned in queries unless we ask for it
     password: {
       type: String,
       required: [true, 'Password is required'],
@@ -23,8 +22,8 @@ const userSchema = new mongoose.Schema(
     },
   },
   { timestamps: true }
-);
+)
 
-const User = mongoose.model('User', userSchema);
+let User = mongoose.model('User', userSchema)
 
-export default User;
+export default User

@@ -1,11 +1,11 @@
-import { Router } from 'express';
-import { signup, login, getMe } from '../controllers/auth.controller.js';
-import { protect } from '../middleware/auth.middleware.js';
+import { Router } from 'express'
+import { signup, login, getMe } from '../controllers/auth.controller.js'
+import { protect } from '../middleware/auth.middleware.js'
 
-const router = Router();
+let router = Router()
 
-router.post('/signup', signup);
-router.post('/login', login);
-router.get('/me', protect, getMe);
+router.post('/signup', signup)
+router.post('/login', login)
+router.get('/me', protect, getMe)
 
-export default router;
+export default router

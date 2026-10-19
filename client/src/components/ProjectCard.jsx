@@ -8,7 +8,7 @@ function ProjectCard({ project, onDelete }) {
     year: 'numeric',
   })
 
-  let handleDelete = () => {
+  function handleDelete() {
     onDelete(project._id)
   }
 
@@ -16,7 +16,6 @@ function ProjectCard({ project, onDelete }) {
     <article className="project-card">
       <Link to={`/builder/${project._id}`} className="project-thumb" aria-label={`Open ${project.title}`}>
         {project.code ? (
-          // sandbox="" means no scripts run in the small preview
           <iframe
             className="project-thumb-frame"
             srcDoc={project.code}

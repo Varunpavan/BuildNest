@@ -1,7 +1,7 @@
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI } from '@google/genai'
 
 // System prompt and output rules for web page generation
-const SYSTEM_INSTRUCTION = `You are NxtBuild, an expert web designer and front-end developer.
+let SYSTEM_INSTRUCTION = `You are NxtBuild, an expert web designer and front-end developer.
 You build complete, good looking, working web pages from a short description.
 
 OUTPUT FORMAT (follow it exactly):
@@ -28,82 +28,76 @@ DESIGN RULES:
 
 WHEN CHANGING AN EXISTING PAGE:
 - You will receive the current page code. Apply only the change that was asked and keep everything else the same.
-- Still return the full updated page, not just the changed part.`;
+- Still return the full updated page, not just the changed part.`
 
-const getClient = () => {
+function getClient() {
   if (!process.env.GEMINI_API_KEY) {
-    throw new Error('GEMINI_API_KEY is missing in the server .env file');
+    throw new Error('GEMINI_API_KEY is missing in the server .env file')
   }
-  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-};
+  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+}
 
-// Sometimes the model still wraps the code in ```html ... ``` so we remove that
-const removeCodeFences = (text) => {
+function removeCodeFences(text) {
   return text
     .replace(/^```(?:html)?\s*/i, '')
     .replace(/```\s*$/, '')
-    .trim();
-};
+    .trim()
+}
 
-// Splits the model's answer into title, summary and html
-const readReply = (rawText) => {
-  const marker = '---HTML---';
-  const markerIndex = rawText.indexOf(marker);
+function readReply(rawText) {
+  let marker = '---HTML---'
+  let markerIndex = rawText.indexOf(marker)
 
-  let header = '';
-  let html = rawText;
+  let header = ''
+  let html = rawText
 
   if (markerIndex !== -1) {
-    header = rawText.slice(0, markerIndex);
-    html = rawText.slice(markerIndex + marker.length);
+    header = rawText.slice(0, markerIndex)
+    html = rawText.slice(markerIndex + marker.length)
   }
 
-  html = removeCodeFences(html.trim());
+  html = removeCodeFences(html.trim())
 
-  // if the model wrote some chat text before the page, cut it off
-  const doctypeIndex = html.toLowerCase().indexOf('<!doctype');
+  let doctypeIndex = html.toLowerCase().indexOf('<!doctype')
   if (doctypeIndex > 0) {
-    html = html.slice(doctypeIndex);
+    html = html.slice(doctypeIndex)
   }
 
   if (!html.toLowerCase().includes('<html')) {
-    throw new Error('The AI reply did not contain a web page');
+    throw new Error('The AI reply did not contain a web page')
   }
 
-  const titleMatch = header.match(/TITLE:\s*(.+)/i);
-  const summaryMatch = header.match(/SUMMARY:\s*(.+)/i);
+  let titleMatch = header.match(/TITLE:\s*(.+)/i)
+  let summaryMatch = header.match(/SUMMARY:\s*(.+)/i)
 
   return {
     title: titleMatch ? titleMatch[1].trim() : '',
     summary: summaryMatch ? summaryMatch[1].trim() : 'Done! Your page is ready. Tell me what to change.',
     html,
-  };
-};
+  }
+}
 
-// prompt = what the user just asked
-// currentCode = the page built so far (empty string for a new project)
-// history = the last few chat messages, so Gemini understands what "make it bigger" refers to
-export const generatePage = async ({ prompt, currentCode, history }) => {
-  const ai = getClient();
+export async function generatePage({ prompt, currentCode, history }) {
+  let ai = getClient()
 
-  let userMessage = '';
+  let userMessage = ''
 
   if (currentCode) {
-    userMessage += `This is the current page:\n\n${currentCode}\n\n`;
+    userMessage += `This is the current page:\n\n${currentCode}\n\n`
 
     if (history.length > 0) {
-      const chatText = history
+      let chatText = history
         .map((message) => `${message.role === 'user' ? 'User' : 'You'}: ${message.text}`)
-        .join('\n');
-      userMessage += `Recent conversation:\n${chatText}\n\n`;
+        .join('\n')
+      userMessage += `Recent conversation:\n${chatText}\n\n`
     }
 
-    userMessage += `Change request: ${prompt}`;
+    userMessage += `Change request: ${prompt}`
   } else {
-    userMessage = `Build this page: ${prompt}`;
+    userMessage = `Build this page: ${prompt}`
   }
 
-  const response = await ai.models.generateContent({
+  let response = await ai.models.generateContent({
     model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
     contents: userMessage,
     config: {
@@ -111,7 +105,7 @@ export const generatePage = async ({ prompt, currentCode, history }) => {
       temperature: 0.9,
       maxOutputTokens: 30000,
     },
-  });
+  })
 
-  return readReply(response.text || '');
-};
+  return readReply(response.text || '')
+}

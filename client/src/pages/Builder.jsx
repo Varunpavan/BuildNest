@@ -26,9 +26,8 @@ function Builder() {
   const [device, setDevice] = useState('desktop')
   const [mobilePane, setMobilePane] = useState('chat')
 
-  // load the project when the page opens
   useEffect(() => {
-    let fetchProject = async () => {
+    async function fetchProject() {
       try {
         let response = await api.get(`/projects/${id}`)
         let project = response.data.project
@@ -37,10 +36,8 @@ function Builder() {
         setMessages(project.messages)
         setLoading(false)
 
-        // the landing page and dashboard can send us here with a first prompt
         let firstPrompt = location.state && location.state.prompt
         if (firstPrompt) {
-          // clear it so a page refresh does not send it again
           navigate(location.pathname, { replace: true, state: null })
           sendPrompt(firstPrompt, project.messages)
         }
@@ -54,8 +51,7 @@ function Builder() {
     fetchProject()
   }, [id])
 
-  // asks the server to build or change the page
-  let sendPrompt = async (text, currentMessages) => {
+  async function sendPrompt(text, currentMessages) {
     let userMessage = { role: 'user', text: text }
 
     setMessages([...currentMessages, userMessage])
@@ -63,7 +59,6 @@ function Builder() {
     setGenerating(true)
 
     try {
-      // if the person edited the code by hand, save it first so the AI changes THEIR version
       if (unsaved) {
         await api.put(`/projects/${id}`, { title: title, code: code })
         setUnsaved(false)
@@ -89,23 +84,22 @@ function Builder() {
     }
   }
 
-  let handleSend = () => {
+  function handleSend() {
     let text = prompt.trim()
     if (text === '' || generating) return
     sendPrompt(text, messages)
   }
 
-  // typing in the code tab changes the page right away, but it is not saved until the person clicks Save
-  let handleCodeChange = (newCode) => {
+  function handleCodeChange(newCode) {
     setCode(newCode)
     setUnsaved(true)
   }
 
-  let handleTitleChange = (event) => {
+  function handleTitleChange(event) {
     setTitle(event.target.value)
   }
 
-  let handleTitleBlur = async () => {
+  async function handleTitleBlur() {
     let cleanTitle = title.trim() === '' ? 'Untitled project' : title.trim()
     setTitle(cleanTitle)
 
@@ -116,7 +110,7 @@ function Builder() {
     }
   }
 
-  let handleSave = async () => {
+  async function handleSave() {
     setSaving(true)
     try {
       await api.put(`/projects/${id}`, { title: title, code: code })
@@ -129,8 +123,7 @@ function Builder() {
     }
   }
 
-  // makes a file out of the code and clicks a hidden link to download it
-  let handleDownload = () => {
+  function handleDownload() {
     let blob = new Blob([code], { type: 'text/html' })
     let url = URL.createObjectURL(blob)
     let link = document.createElement('a')
@@ -142,11 +135,11 @@ function Builder() {
     URL.revokeObjectURL(url)
   }
 
-  let showChat = () => {
+  function showChat() {
     setMobilePane('chat')
   }
 
-  let showPreview = () => {
+  function showPreview() {
     setMobilePane('preview')
   }
 

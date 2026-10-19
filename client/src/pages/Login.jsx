@@ -13,17 +13,17 @@ function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  let handleChange = (event) => {
+  function handleChange(event) {
     setForm({ ...form, [event.target.name]: event.target.value })
     setError('')
   }
 
-  let toggleMode = () => {
+  function toggleMode() {
     setIsSignup(!isSignup)
     setError('')
   }
 
-  let handleSubmit = async (event) => {
+  async function handleSubmit(event) {
     event.preventDefault()
     setLoading(true)
     setError('')
@@ -35,7 +35,6 @@ function Login() {
         await login(form.email, form.password)
       }
 
-      // if they typed a prompt on the landing page, start that project now
       let pendingPrompt = sessionStorage.getItem('pendingPrompt')
 
       if (pendingPrompt) {

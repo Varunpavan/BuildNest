@@ -15,7 +15,7 @@ function Dashboard() {
   const [creating, setCreating] = useState(false)
 
   useEffect(() => {
-    let fetchProjects = async () => {
+    async function fetchProjects() {
       try {
         let response = await api.get('/projects')
         setProjects(response.data.projects)
@@ -30,7 +30,7 @@ function Dashboard() {
     fetchProjects()
   }, [])
 
-  let handleNewProject = async () => {
+  async function handleNewProject() {
     setCreating(true)
     try {
       let response = await api.post('/projects', {})
@@ -42,7 +42,7 @@ function Dashboard() {
     }
   }
 
-  let handleDelete = async (id) => {
+  async function handleDelete(id) {
     let sure = window.confirm('Delete this project? This cannot be undone.')
     if (!sure) return
 

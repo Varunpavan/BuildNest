@@ -1,15 +1,14 @@
-import { Router } from 'express';
-import authRoutes from './auth.routes.js';
-import projectRoutes from './project.routes.js';
+import { Router } from 'express'
+import authRoutes from './auth.routes.js'
+import projectRoutes from './project.routes.js'
 
-const router = Router();
+let router = Router()
 
-// quick way to check the server is alive: GET /api/health
-router.get('/health', (req, res) => {
-  res.json({ success: true, message: 'NxtBuild server is running' });
-});
+router.get('/health', function (req, res) {
+  res.json({ success: true, message: 'NxtBuild server is running' })
+})
 
-router.use('/auth', authRoutes);
-router.use('/projects', projectRoutes);
+router.use('/auth', authRoutes)
+router.use('/projects', projectRoutes)
 
-export default router;
+export default router

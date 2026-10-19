@@ -1,15 +1,15 @@
 import '../styles/builder.css'
 
 function PreviewPanel({ code, setCode, tab, setTab, device, setDevice, generating }) {
-  let showPreview = () => {
+  function showPreview() {
     setTab('preview')
   }
 
-  let showCode = () => {
+  function showCode() {
     setTab('code')
   }
 
-  let handleCodeChange = (event) => {
+  function handleCodeChange(event) {
     setCode(event.target.value)
   }
 
@@ -70,7 +70,6 @@ function PreviewPanel({ code, setCode, tab, setTab, device, setDevice, generatin
                 <p className="stage-empty-text">Describe it in the chat and it appears in a few seconds.</p>
               </div>
             ) : (
-              // no allow-same-origin, so the generated page cannot touch our app or our cookies
               <iframe
                 className={`stage-frame stage-frame-${device}`}
                 title="Live preview of your page"

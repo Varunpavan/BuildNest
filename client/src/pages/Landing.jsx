@@ -67,12 +67,12 @@ function Landing() {
   const [error, setError] = useState('')
   const promptRef = useRef(null)
 
-  let handlePromptChange = (event) => {
+  function handlePromptChange(event) {
     setPrompt(event.target.value)
     setError('')
   }
 
-  let handleStart = async () => {
+  async function handleStart() {
     let cleanPrompt = prompt.trim()
 
     if (cleanPrompt === '') {
@@ -81,7 +81,6 @@ function Landing() {
       return
     }
 
-    // not logged in yet: remember the prompt, we use it right after login
     if (!user) {
       sessionStorage.setItem('pendingPrompt', cleanPrompt)
       navigate('/login')
@@ -99,15 +98,13 @@ function Landing() {
     }
   }
 
-  // Ctrl + Enter (or Cmd + Enter) sends the prompt
-  let handlePromptKey = (event) => {
+  function handlePromptKey(event) {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       handleStart()
     }
   }
 
-  // puts text in the prompt box and takes the person back up to it
-  let fillPrompt = (text) => {
+  function fillPrompt(text) {
     setPrompt(text)
     setError('')
     window.scrollTo({ top: 0, behavior: 'smooth' })

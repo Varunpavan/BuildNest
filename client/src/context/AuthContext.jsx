@@ -8,9 +8,9 @@ function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // when the app opens, check if a saved token still works
+  // check if a saved token exists on mount
   useEffect(() => {
-    let loadUser = async () => {
+    async function loadUser() {
       let token = Cookies.get('nxtbuild_token')
 
       if (!token) {
@@ -25,7 +25,6 @@ function AuthProvider({ children }) {
         setUser(response.data.user)
       } catch (err) {
         console.log(err)
-        // only log the person out if the server said the token is bad
         if (err.response && err.response.status === 401) {
           Cookies.remove('nxtbuild_token')
           delete api.defaults.headers.common.Authorization
@@ -38,24 +37,23 @@ function AuthProvider({ children }) {
     loadUser()
   }, [])
 
-  // keeps the token in a cookie and tells axios to send it with every request
-  let saveSession = (token, userData) => {
+  function saveSession(token, userData) {
     Cookies.set('nxtbuild_token', token, { expires: 7 })
     api.defaults.headers.common.Authorization = `Bearer ${token}`
     setUser(userData)
   }
 
-  let signup = async (name, email, password) => {
+  async function signup(name, email, password) {
     let response = await api.post('/auth/signup', { name, email, password })
     saveSession(response.data.token, response.data.user)
   }
 
-  let login = async (email, password) => {
+  async function login(email, password) {
     let response = await api.post('/auth/login', { email, password })
     saveSession(response.data.token, response.data.user)
   }
 
-  let logout = () => {
+  function logout() {
     Cookies.remove('nxtbuild_token')
     delete api.defaults.headers.common.Authorization
     setUser(null)

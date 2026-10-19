@@ -10,24 +10,22 @@ let suggestions = [
 function ChatPanel({ messages, prompt, setPrompt, onSend, generating }) {
   const bottomRef = useRef(null)
 
-  // keep the newest message in view
   useEffect(() => {
     bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages, generating])
 
-  let handleChange = (event) => {
+  function handleChange(event) {
     setPrompt(event.target.value)
   }
 
-  // Enter sends, Shift + Enter makes a new line
-  let handleKeyDown = (event) => {
+  function handleKeyDown(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
       onSend()
     }
   }
 
-  let handleSuggestion = (text) => {
+  function handleSuggestion(text) {
     setPrompt(text)
   }
 
