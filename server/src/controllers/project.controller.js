@@ -1,10 +1,15 @@
+import mongoose from 'mongoose'
 import Project from '../models/project.model.js'
 import { generatePage } from '../services/gemini.service.js'
+
+// In-memory concurrency guard to prevent overlapping builds on the same project
+let activeGenerations = new Set()
 
 export async function getProjects(req, res) {
   let projects = await Project.find({ user: req.user._id })
     .select('title code updatedAt')
     .sort({ updatedAt: -1 })
+    .lean()
 
   res.json({ success: true, projects })
 }
@@ -17,6 +22,10 @@ export async function createProject(req, res) {
 }
 
 export async function getProject(req, res) {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ success: false, message: 'Invalid project ID format.' })
+  }
+
   let project = await Project.findOne({ _id: req.params.id, user: req.user._id })
 
   if (!project) {
@@ -27,6 +36,10 @@ export async function getProject(req, res) {
 }
 
 export async function updateProject(req, res) {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ success: false, message: 'Invalid project ID format.' })
+  }
+
   let project = await Project.findOne({ _id: req.params.id, user: req.user._id })
 
   if (!project) {
@@ -47,6 +60,10 @@ export async function updateProject(req, res) {
 }
 
 export async function deleteProject(req, res) {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ success: false, message: 'Invalid project ID format.' })
+  }
+
   let project = await Project.findOneAndDelete({ _id: req.params.id, user: req.user._id })
 
   if (!project) {
@@ -57,6 +74,12 @@ export async function deleteProject(req, res) {
 }
 
 export async function generateProject(req, res) {
+  let projectId = req.params.id
+
+  if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    return res.status(400).json({ success: false, message: 'Invalid project ID format.' })
+  }
+
   let { prompt } = req.body || {}
 
   if (typeof prompt !== 'string' || prompt.trim() === '') {
@@ -67,20 +90,38 @@ export async function generateProject(req, res) {
     return res.status(400).json({ success: false, message: 'That prompt is too long. Keep it under 2000 characters.' })
   }
 
-  let project = await Project.findOne({ _id: req.params.id, user: req.user._id })
+  if (activeGenerations.has(projectId)) {
+    return res.status(409).json({
+      success: false,
+      message: 'A build is already in progress for this project. Please wait a moment.',
+    })
+  }
+
+  let project = await Project.findOne({ _id: projectId, user: req.user._id })
 
   if (!project) {
     return res.status(404).json({ success: false, message: 'Project not found.' })
   }
 
-  let result
+  activeGenerations.add(projectId)
 
   try {
-    result = await generatePage({
+    let result = await generatePage({
       prompt: prompt.trim(),
       currentCode: project.code,
       history: project.messages.slice(-6),
     })
+
+    project.code = result.html
+    project.messages.push({ role: 'user', text: prompt.trim() })
+    project.messages.push({ role: 'ai', text: result.summary })
+
+    if (project.title === 'Untitled project' && result.title) {
+      project.title = result.title.slice(0, 80)
+    }
+
+    await project.save()
+    res.json({ success: true, project })
   } catch (error) {
     console.error('Gemini error:', error.message)
 
@@ -89,16 +130,7 @@ export async function generateProject(req, res) {
     }
 
     return res.status(502).json({ success: false, message: 'The AI could not build that. Try again, or word the request a little differently.' })
+  } finally {
+    activeGenerations.delete(projectId)
   }
-
-  project.code = result.html
-  project.messages.push({ role: 'user', text: prompt.trim() })
-  project.messages.push({ role: 'ai', text: result.summary })
-
-  if (project.title === 'Untitled project' && result.title) {
-    project.title = result.title.slice(0, 80)
-  }
-
-  await project.save()
-  res.json({ success: true, project })
 }

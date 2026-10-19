@@ -37,14 +37,14 @@ function getClient() {
   return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 }
 
-function removeCodeFences(text) {
+export function removeCodeFences(text) {
   return text
     .replace(/^```(?:html)?\s*/i, '')
     .replace(/```\s*$/, '')
     .trim()
 }
 
-function readReply(rawText) {
+export function readReply(rawText) {
   let marker = '---HTML---'
   let markerIndex = rawText.indexOf(marker)
 
@@ -63,8 +63,21 @@ function readReply(rawText) {
     html = html.slice(doctypeIndex)
   }
 
+  // trim conversational chat after closing </html> tag
+  let closingIndex = html.toLowerCase().lastIndexOf('</html>')
+  if (closingIndex !== -1) {
+    html = html.slice(0, closingIndex + 7)
+  }
+
+  // auto-wrap if model returned an HTML fragment without a full document
   if (!html.toLowerCase().includes('<html')) {
-    throw new Error('The AI reply did not contain a web page')
+    let lower = html.toLowerCase()
+    let isFragment = lower.includes('<div') || lower.includes('<section') || lower.includes('<header') || lower.includes('<main') || lower.includes('<body')
+    if (isFragment) {
+      html = `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>Generated Page</title>\n</head>\n<body>\n${html}\n</body>\n</html>`
+    } else {
+      throw new Error('The AI reply did not contain a web page')
+    }
   }
 
   let titleMatch = header.match(/TITLE:\s*(.+)/i)

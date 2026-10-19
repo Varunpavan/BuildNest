@@ -19,6 +19,11 @@ export async function signup(req, res) {
     return res.status(400).json({ success: false, message: 'Name, email and password are all required.' })
   }
 
+  let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ success: false, message: 'Please enter a valid email address.' })
+  }
+
   if (password.length < 6) {
     return res.status(400).json({ success: false, message: 'Password needs at least 6 characters.' })
   }
