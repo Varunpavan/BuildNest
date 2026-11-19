@@ -19,6 +19,25 @@ function PreviewPanel({ code, setCode, tab, setTab, device, setDevice, generatin
     { id: 'phone', label: 'Phone' },
   ]
 
+  let previewCode = code
+  if (code) {
+    let scrollStyle = `<style id="nxtbuild-mobile-scroll">
+      html, body {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
+        min-height: 100% !important;
+        height: auto !important;
+      }
+    </style>`
+    if (code.includes('</head>')) {
+      previewCode = code.replace('</head>', `${scrollStyle}</head>`)
+    } else {
+      previewCode = scrollStyle + code
+    }
+  }
+
   return (
     <section className="preview" aria-label="Page preview">
       <div className="preview-toolbar">
@@ -73,7 +92,8 @@ function PreviewPanel({ code, setCode, tab, setTab, device, setDevice, generatin
               <iframe
                 className={`stage-frame stage-frame-${device}`}
                 title="Live preview of your page"
-                srcDoc={code}
+                srcDoc={previewCode}
+                scrolling="yes"
                 sandbox="allow-scripts allow-forms allow-modals allow-popups"
               />
             )}

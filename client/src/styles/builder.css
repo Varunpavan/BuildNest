@@ -282,6 +282,9 @@
   background: #fff;
   box-shadow: 0 30px 50px -24px rgba(10, 31, 92, 0.45);
   transition: width 0.3s ease;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .stage-frame-desktop {
@@ -470,6 +473,18 @@
 
   .title-input {
     width: 160px;
+  }
+
+  .stage {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .stage-frame {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 }
 
