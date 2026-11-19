@@ -5,9 +5,11 @@
   "license": "ISC",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "test": "node --test test/app.test.js"
+    "start": "python3 main.py",
+    "dev": "uvicorn main:app --reload --port 5050",
+    "test": "pytest tests",
+    "node:start": "node server.js",
+    "node:dev": "node --watch server.js"
   },
   "dependencies": {
     "@google/genai": "1.44.0",

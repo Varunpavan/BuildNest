@@ -17,3 +17,10 @@ dist-ssr/
 # Logs & System files
 *.log
 .DS_Store
+
+# Python & Virtualenv
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
