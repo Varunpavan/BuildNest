@@ -31,10 +31,81 @@ function PreviewPanel({ code, setCode, tab, setTab, device, setDevice, generatin
         height: auto !important;
       }
     </style>`
+
+    let touchScript = `<script id="nxtbuild-touch-scroll-bridge">
+      (function() {
+        var startY = 0;
+        var startScrollTop = 0;
+        var isTouching = false;
+        var lastY = 0;
+        var lastTime = 0;
+        var velocity = 0;
+        var rafId = null;
+
+        function stopMomentum() {
+          if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+          }
+        }
+
+        window.addEventListener('touchstart', function(e) {
+          if (!e.touches || e.touches.length !== 1) return;
+          stopMomentum();
+          isTouching = true;
+          startY = e.touches[0].clientY;
+          lastY = startY;
+          lastTime = performance.now();
+          velocity = 0;
+          startScrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+        }, { passive: true });
+
+        window.addEventListener('touchmove', function(e) {
+          if (!isTouching || !e.touches || e.touches.length !== 1) return;
+          var currentY = e.touches[0].clientY;
+          var now = performance.now();
+          var dt = now - lastTime;
+          if (dt > 0) {
+            velocity = (lastY - currentY) / dt;
+          }
+          lastY = currentY;
+          lastTime = now;
+
+          var deltaY = startY - currentY;
+          window.scrollTo(0, startScrollTop + deltaY);
+        }, { passive: true });
+
+        function onTouchEnd() {
+          if (!isTouching) return;
+          isTouching = false;
+
+          if (Math.abs(velocity) > 0.15) {
+            var currentVelocity = velocity * 16;
+            function step() {
+              if (Math.abs(currentVelocity) < 0.5) return;
+              window.scrollBy(0, currentVelocity);
+              currentVelocity *= 0.94;
+              rafId = requestAnimationFrame(step);
+            }
+            rafId = requestAnimationFrame(step);
+          }
+        }
+
+        window.addEventListener('touchend', onTouchEnd, { passive: true });
+        window.addEventListener('touchcancel', onTouchEnd, { passive: true });
+      })();
+    </script>`
+
     if (code.includes('</head>')) {
-      previewCode = code.replace('</head>', `${scrollStyle}</head>`)
+      previewCode = previewCode.replace('</head>', `${scrollStyle}</head>`)
     } else {
-      previewCode = scrollStyle + code
+      previewCode = scrollStyle + previewCode
+    }
+
+    if (previewCode.includes('</body>')) {
+      previewCode = previewCode.replace('</body>', `${touchScript}</body>`)
+    } else {
+      previewCode = previewCode + touchScript
     }
   }
 
