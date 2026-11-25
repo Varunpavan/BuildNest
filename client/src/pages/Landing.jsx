@@ -144,7 +144,7 @@ function Landing() {
           <div className="hero-grid">
             <div className="hero-left">
               <p className="hero-subtitle">
-                NxtBuild turns one plain sentence into a working page. Preview it live, change it by chatting, edit
+                BuildNest turns one plain sentence into a working page. Preview it live, change it by chatting, edit
                 the code yourself, and download it when you are happy.
               </p>
 
@@ -243,7 +243,7 @@ function Landing() {
       <footer className="landing-footer">
         <div className="section-inner landing-footer-inner">
           <Logo />
-          <p>Built with React, Express, MongoDB and Gemini.</p>
+          <p>Built with React, FastAPI, MongoDB and Gemini.</p>
         </div>
       </footer>
     </div>

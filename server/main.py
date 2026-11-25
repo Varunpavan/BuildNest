@@ -17,7 +17,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-logger = logging.getLogger("nxtbuild")
+logger = logging.getLogger("buildnest")
 
 
 @asynccontextmanager
@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
     Application startup and shutdown events.
     Verifies database connectivity, logs configuration, and handles cleanup.
     """
-    logger.info("Starting NxtBuild FastAPI server...")
+    logger.info("Starting BuildNest FastAPI server...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"CORS Allowed Origins: {settings.cors_origins}")
 
@@ -44,13 +44,13 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    logger.info("Shutting down NxtBuild server...")
+    logger.info("Shutting down BuildNest server...")
     await close_database_connection()
 
 
 app = FastAPI(
-    title="NxtBuild API",
-    description="Scalable, asynchronous backend for the NxtBuild AI website builder",
+    title="BuildNest API",
+    description="Scalable, asynchronous backend for the BuildNest AI website builder",
     version="2.0.0",
     lifespan=lifespan,
     docs_url="/docs",
@@ -60,11 +60,11 @@ app = FastAPI(
 # 1. Observability middleware (logs latency and paths)
 app.add_middleware(ObservabilityMiddleware)
 
-# 2. CORS configuration for frontend
+# 2. CORS configuration for frontend (supports local dev, LAN mobile testing, and Vercel deployments)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$",
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|.*\.vercel\.app)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

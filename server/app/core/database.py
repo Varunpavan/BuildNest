@@ -4,7 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from pymongo import ASCENDING, DESCENDING
 from app.core.config import settings
 
-logger = logging.getLogger("nxtbuild.database")
+logger = logging.getLogger("buildnest.database")
 
 
 class Database:

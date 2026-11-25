@@ -9,7 +9,7 @@ function Logo({ to = '/', light = false }) {
         <span className="logo-block logo-block-one"></span>
         <span className="logo-block logo-block-two"></span>
       </span>
-      <span className="logo-name">NxtBuild</span>
+      <span className="logo-name">BuildNest</span>
     </Link>
   )
 }

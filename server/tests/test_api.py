@@ -9,7 +9,7 @@ def test_health_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert data["success"] is True
-    assert "NxtBuild server is running" in data["message"]
+    assert "BuildNest server is running" in data["message"]
 
 
 def test_signup_missing_fields():

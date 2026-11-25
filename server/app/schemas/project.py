@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
@@ -62,11 +63,14 @@ def serialize_message(msg: dict) -> dict:
 def serialize_project(doc: dict) -> dict:
     created = doc.get("createdAt")
     updated = doc.get("updatedAt")
+    code = doc.get("code", "")
+    if code and re.search(r"nxt\s*[-_]?\s*build", code, re.IGNORECASE):
+        code = re.sub(r"nxt\s*[-_]?\s*build", "BuildNest", code, flags=re.IGNORECASE)
     return {
         "_id": str(doc["_id"]),
         "user": str(doc.get("user", "")),
         "title": doc.get("title", "Untitled project"),
-        "code": doc.get("code", ""),
+        "code": code,
         "messages": [serialize_message(m) for m in doc.get("messages", [])],
         "createdAt": created.isoformat() if isinstance(created, datetime) else (str(created) if created else ""),
         "updatedAt": updated.isoformat() if isinstance(updated, datetime) else (str(updated) if updated else "")

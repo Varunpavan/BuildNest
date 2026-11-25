@@ -11,7 +11,7 @@ function AuthProvider({ children }) {
   // check if a saved token exists on mount
   useEffect(() => {
     async function loadUser() {
-      let token = Cookies.get('nxtbuild_token')
+      let token = Cookies.get('buildnest_token') || Cookies.get('nxtbuild_token')
 
       if (!token) {
         setLoading(false)
@@ -26,6 +26,7 @@ function AuthProvider({ children }) {
       } catch (err) {
         console.log(err)
         if (err.response && err.response.status === 401) {
+          Cookies.remove('buildnest_token')
           Cookies.remove('nxtbuild_token')
           delete api.defaults.headers.common.Authorization
         }
@@ -38,7 +39,7 @@ function AuthProvider({ children }) {
   }, [])
 
   function saveSession(token, userData) {
-    Cookies.set('nxtbuild_token', token, { expires: 7 })
+    Cookies.set('buildnest_token', token, { expires: 7 })
     api.defaults.headers.common.Authorization = `Bearer ${token}`
     setUser(userData)
   }
@@ -54,6 +55,7 @@ function AuthProvider({ children }) {
   }
 
   function logout() {
+    Cookies.remove('buildnest_token')
     Cookies.remove('nxtbuild_token')
     delete api.defaults.headers.common.Authorization
     setUser(null)

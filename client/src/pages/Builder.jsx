@@ -23,7 +23,15 @@ function Builder() {
   const [saving, setSaving] = useState(false)
   const [unsaved, setUnsaved] = useState(false)
   const [tab, setTab] = useState('preview')
-  const [device, setDevice] = useState('desktop')
+  // Responsive Default View:
+  // On mobile screens (<= 768px), default to 'phone' view so mobile users immediately see a 1:1 view.
+  // On laptops and desktop screens (> 768px), default to 'desktop' view for wide displays.
+  const [device, setDevice] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      return 'phone'
+    }
+    return 'desktop'
+  })
   const [mobilePane, setMobilePane] = useState('chat')
 
   useEffect(() => {
@@ -32,7 +40,7 @@ function Builder() {
         let response = await api.get(`/projects/${id}`)
         let project = response.data.project
         setTitle(project.title)
-        setCode(project.code)
+        setCode(project.code ? project.code.replace(/nxt\s*[-_]?\s*build/gi, 'BuildNest') : '')
         setMessages(project.messages)
         setLoading(false)
 
@@ -67,7 +75,7 @@ function Builder() {
       let response = await api.post(`/projects/${id}/generate`, { prompt: text })
       let project = response.data.project
 
-      setCode(project.code)
+      setCode(project.code ? project.code.replace(/nxt\s*[-_]?\s*build/gi, 'BuildNest') : '')
       setMessages(project.messages)
       setTitle(project.title)
       setTab('preview')

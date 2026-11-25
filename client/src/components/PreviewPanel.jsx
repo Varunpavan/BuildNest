@@ -1,6 +1,45 @@
+import { useState, useEffect, useRef } from 'react'
 import '../styles/builder.css'
 
 function PreviewPanel({ code, setCode, tab, setTab, device, setDevice, generating }) {
+  const stageRef = useRef(null)
+  const [stageWidth, setStageWidth] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth <= 600 ? window.innerWidth - 20 : window.innerWidth - 40
+    }
+    return 360
+  })
+
+  // Measure stage dimensions to dynamically scale desktop/tablet views to fit small mobile screens
+  useEffect(() => {
+    function measureStage() {
+      if (stageRef.current && stageRef.current.clientWidth > 0) {
+        const computed = window.getComputedStyle(stageRef.current)
+        const paddingX = parseFloat(computed.paddingLeft || 0) + parseFloat(computed.paddingRight || 0)
+        const width = stageRef.current.clientWidth - paddingX
+        if (width > 0) {
+          setStageWidth(width)
+        }
+      }
+    }
+
+    measureStage()
+    window.addEventListener('resize', measureStage)
+
+    let observer = null
+    if (typeof ResizeObserver !== 'undefined' && stageRef.current) {
+      observer = new ResizeObserver(() => {
+        measureStage()
+      })
+      observer.observe(stageRef.current)
+    }
+
+    return () => {
+      window.removeEventListener('resize', measureStage)
+      if (observer) observer.disconnect()
+    }
+  }, [tab])
+
   function showPreview() {
     setTab('preview')
   }
@@ -19,9 +58,63 @@ function PreviewPanel({ code, setCode, tab, setTab, device, setDevice, generatin
     { id: 'phone', label: 'Phone' },
   ]
 
+  // Device Scaling Architecture:
+  // On mobile screens (<= 768px), true desktop (1024px) and tablet (768px) viewports are 2x to 2.6x
+  // wider than the phone screen (e.g. 393px). To display the full unclipped layout without horizontal
+  // overflow, we scale the frame down by: scale = availableWidth / targetWidth.
+  // The outer stage-scaler wrapper maintains the visual scaled width (targetWidth * scale),
+  // while stage-scaler-inner renders at unscaled dimensions with transform: scale(scale).
+  // Phone view (390px) and large laptop screens render natively at 100% without scaling.
+  const isMobileScreen = typeof window !== 'undefined' && window.innerWidth <= 768
+  const availableWidth = stageWidth > 0 ? stageWidth : (typeof window !== 'undefined' ? (window.innerWidth <= 600 ? window.innerWidth - 20 : window.innerWidth - 40) : 360)
+
+  let targetWidth = 1024
+  let scale = 1
+  let isScaled = false
+
+  if (isMobileScreen) {
+    if (device === 'desktop') {
+      targetWidth = 1024
+      scale = Math.min(1, availableWidth / 1024)
+      isScaled = scale < 1
+    } else if (device === 'tablet') {
+      targetWidth = 768
+      scale = Math.min(1, availableWidth / 768)
+      isScaled = scale < 1
+    }
+  }
+
   let previewCode = code
   if (code) {
-    let scrollStyle = `<style id="nxtbuild-mobile-scroll">
+    // Replace any legacy NxtBuild mentions in generated output with BuildNest
+    previewCode = previewCode.replace(/nxt\s*[-_]?\s*build/gi, 'BuildNest')
+
+    // Force embedded document viewport to match selected device mode
+    let targetViewportWidth = 'device-width'
+    if (device === 'desktop') targetViewportWidth = '1024'
+    else if (device === 'tablet') targetViewportWidth = '768'
+    else if (device === 'phone') targetViewportWidth = '390'
+
+    if (previewCode.includes('<meta name="viewport"')) {
+      previewCode = previewCode.replace(
+        /<meta\s+name=["']viewport["'][^>]*>/i,
+        `<meta name="viewport" content="width=${targetViewportWidth}, initial-scale=1.0">`
+      )
+    } else if (previewCode.includes('</head>')) {
+      previewCode = previewCode.replace(
+        '</head>',
+        `<meta name="viewport" content="width=${targetViewportWidth}, initial-scale=1.0"></head>`
+      )
+    }
+
+    // Standard native browser smooth scrolling CSS (clean, no JS listener overhead)
+    let scrollStyle = `<style id="buildnest-scroll">
+      *, *::before, *::after {
+        -webkit-touch-callout: none !important;
+        -webkit-user-select: none !important;
+        user-select: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+      }
       html, body {
         overflow-y: auto !important;
         overflow-x: hidden !important;
@@ -32,80 +125,10 @@ function PreviewPanel({ code, setCode, tab, setTab, device, setDevice, generatin
       }
     </style>`
 
-    let touchScript = `<script id="nxtbuild-touch-scroll-bridge">
-      (function() {
-        var startY = 0;
-        var startScrollTop = 0;
-        var isTouching = false;
-        var lastY = 0;
-        var lastTime = 0;
-        var velocity = 0;
-        var rafId = null;
-
-        function stopMomentum() {
-          if (rafId) {
-            cancelAnimationFrame(rafId);
-            rafId = null;
-          }
-        }
-
-        window.addEventListener('touchstart', function(e) {
-          if (!e.touches || e.touches.length !== 1) return;
-          stopMomentum();
-          isTouching = true;
-          startY = e.touches[0].clientY;
-          lastY = startY;
-          lastTime = performance.now();
-          velocity = 0;
-          startScrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
-        }, { passive: true });
-
-        window.addEventListener('touchmove', function(e) {
-          if (!isTouching || !e.touches || e.touches.length !== 1) return;
-          var currentY = e.touches[0].clientY;
-          var now = performance.now();
-          var dt = now - lastTime;
-          if (dt > 0) {
-            velocity = (lastY - currentY) / dt;
-          }
-          lastY = currentY;
-          lastTime = now;
-
-          var deltaY = startY - currentY;
-          window.scrollTo(0, startScrollTop + deltaY);
-        }, { passive: true });
-
-        function onTouchEnd() {
-          if (!isTouching) return;
-          isTouching = false;
-
-          if (Math.abs(velocity) > 0.15) {
-            var currentVelocity = velocity * 16;
-            function step() {
-              if (Math.abs(currentVelocity) < 0.5) return;
-              window.scrollBy(0, currentVelocity);
-              currentVelocity *= 0.94;
-              rafId = requestAnimationFrame(step);
-            }
-            rafId = requestAnimationFrame(step);
-          }
-        }
-
-        window.addEventListener('touchend', onTouchEnd, { passive: true });
-        window.addEventListener('touchcancel', onTouchEnd, { passive: true });
-      })();
-    </script>`
-
-    if (code.includes('</head>')) {
+    if (previewCode.includes('</head>')) {
       previewCode = previewCode.replace('</head>', `${scrollStyle}</head>`)
     } else {
       previewCode = scrollStyle + previewCode
-    }
-
-    if (previewCode.includes('</body>')) {
-      previewCode = previewCode.replace('</body>', `${touchScript}</body>`)
-    } else {
-      previewCode = previewCode + touchScript
     }
   }
 
@@ -148,7 +171,7 @@ function PreviewPanel({ code, setCode, tab, setTab, device, setDevice, generatin
 
       <div className="preview-body">
         {tab === 'preview' && (
-          <div className="stage">
+          <div className="stage" ref={stageRef}>
             {code === '' ? (
               <div className="stage-empty">
                 <span className="stage-empty-blocks" aria-hidden="true">
@@ -158,6 +181,41 @@ function PreviewPanel({ code, setCode, tab, setTab, device, setDevice, generatin
                 </span>
                 <h2 className="stage-empty-title">Your page will show up here</h2>
                 <p className="stage-empty-text">Describe it in the chat and it appears in a few seconds.</p>
+              </div>
+            ) : isScaled ? (
+              <div
+                className="stage-scaler"
+                style={{
+                  width: `${targetWidth * scale}px`,
+                }}
+              >
+                <div
+                  className="stage-scaler-inner"
+                  style={{
+                    width: `${targetWidth}px`,
+                    minWidth: `${targetWidth}px`,
+                    maxWidth: `${targetWidth}px`,
+                    height: `${100 / scale}%`,
+                    transform: `scale(${scale})`,
+                  }}
+                >
+                  <iframe
+                    className={`stage-frame stage-frame-${device}`}
+                    title="Live preview of your page"
+                    srcDoc={previewCode}
+                    scrolling="yes"
+                    sandbox="allow-scripts allow-forms allow-modals allow-popups"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      minWidth: '100%',
+                      maxWidth: '100%',
+                      border: 'none',
+                      borderRadius: 0,
+                      boxShadow: 'none',
+                    }}
+                  />
+                </div>
               </div>
             ) : (
               <iframe

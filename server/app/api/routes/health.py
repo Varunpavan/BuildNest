@@ -12,6 +12,6 @@ async def health_check():
     db_status = "connected" if db_state.client is not None else "disconnected"
     return {
         "success": True,
-        "message": "NxtBuild server is running",
+        "message": "BuildNest server is running",
         "database": db_status
     }

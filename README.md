@@ -1,6 +1,6 @@
-# NxtBuild
+# BuildNest
 
-Describe a website in plain words and NxtBuild builds it with Gemini. You get a live preview,
+Describe a website in plain words and BuildNest builds it with Gemini. You get a live preview,
 a chat to keep changing the page, a code editor, and a one-click download.
 
 **Stack:** React 19 + Vite, React Router, Context API, axios | FastAPI (Python), Motor (MongoDB), PyJWT, Google GenAI (`google-genai`)
@@ -73,8 +73,29 @@ client/src
   styles/              one CSS file per page
 ```
 
+## Deployment
+
+### 1. Frontend (Vercel)
+- **Framework Preset:** Vite
+- **Root Directory:** `client`
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Environment Variable:**
+  - `VITE_API_URL`: Your deployed Render backend URL (e.g. `https://buildnest-backend.onrender.com/api`)
+
+### 2. Backend (Render)
+- **Environment:** Python
+- **Root Directory:** `server`
+- **Build Command:** `pip install -r requirements.txt`
+- **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- **Environment Variables:**
+  - `MONGODB_URI`: Your MongoDB Atlas connection URI
+  - `GEMINI_API_KEY`: Your Google Gemini API key
+  - `JWT_SECRET`: A secure random JWT secret string
+  - `CLIENT_URL`: Your deployed Vercel frontend URL (e.g. `https://buildnest.vercel.app`)
+
 ## Good to know
 
 - Generated pages run with `sandbox` and **without** `allow-same-origin`, so AI code can never read your cookies or call your API. The side effect is that generated pages cannot use `localStorage`; the Gemini brief tells it not to.
 - Change the model with `GEMINI_MODEL` in `server/.env` (default `gemini-2.5-flash`).
-- Every generate call costs API credits. Prompts are capped at 2000 characters; a rate limiter (for example `express-rate-limit`) is a good next step before you deploy.
+- Every generate call costs API credits. Prompts are capped at 2000 characters; a rate limiter (for example `slowapi`) is a good next step before you deploy.

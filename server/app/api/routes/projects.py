@@ -11,7 +11,7 @@ from app.core.database import get_projects_collection
 from app.schemas.project import serialize_project, serialize_project_summary
 from app.services.gemini_service import generate_page
 
-logger = logging.getLogger("nxtbuild.projects")
+logger = logging.getLogger("buildnest.projects")
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 

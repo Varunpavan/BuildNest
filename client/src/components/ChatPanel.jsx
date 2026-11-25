@@ -11,7 +11,9 @@ function ChatPanel({ messages, prompt, setPrompt, onSend, generating }) {
   const bottomRef = useRef(null)
 
   useEffect(() => {
-    bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }
   }, [messages, generating])
 
   function handleChange(event) {

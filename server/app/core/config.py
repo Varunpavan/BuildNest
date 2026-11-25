@@ -16,15 +16,16 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = os.getenv("NODE_ENV", "development")
 
     # Database
-    MONGODB_URI: str = "mongodb://localhost:27017/nxtbuild"
+    MONGODB_URI: str = "mongodb://localhost:27017/buildnest"
 
     # Security & Auth (with fallback for test/dev environments)
-    JWT_SECRET: str = "nxtbuild_default_development_jwt_secret_key_change_in_production"
+    JWT_SECRET: str = "buildnest_default_development_jwt_secret_key_change_in_production"
     JWT_EXPIRES_IN: str = "7d"
 
-    # AI Service
+    # AI Service & Automated Model Cascading
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.5-flash"
+    PRIMARY_GEMINI_MODEL: str = "gemini-2.5-flash-lite"
+    FALLBACK_GEMINI_MODEL: str = "gemini-2.5-flash"
 
     # Frontend / CORS
     CLIENT_URL: str = "http://localhost:5173"

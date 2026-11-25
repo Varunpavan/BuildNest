@@ -147,7 +147,7 @@ function Login() {
           </button>
 
           <p className="login-switch">
-            {isSignup ? 'Already have an account?' : 'New to NxtBuild?'}
+            {isSignup ? 'Already have an account?' : 'New to BuildNest?'}
             <button type="button" className="login-switch-btn" onClick={toggleMode}>
               {isSignup ? 'Log in' : 'Create an account'}
             </button>

@@ -5,9 +5,9 @@ from google import genai
 from google.genai import types
 from app.core.config import settings
 
-logger = logging.getLogger("nxtbuild.gemini")
+logger = logging.getLogger("buildnest.gemini")
 
-SYSTEM_INSTRUCTION = """You are NxtBuild, an expert web designer and front-end developer.
+SYSTEM_INSTRUCTION = """You are BuildNest, an expert web designer and front-end developer.
 You build complete, good looking, working web pages from a short description.
 
 OUTPUT FORMAT (follow it exactly):
@@ -31,6 +31,7 @@ DESIGN RULES:
 - Write real, specific copy for the subject. Never use lorem ipsum.
 - Avoid generic purple gradients, identical rows of rounded cards and stock template layouts.
 - Keep strong contrast so text is easy to read.
+- If including footer credits or branding, always use "BuildNest" (e.g. "Built with ❤️ by BuildNest") and NEVER use "NxtBuild".
 
 WHEN CHANGING AN EXISTING PAGE:
 - You will receive the current page code. Apply only the change that was asked and keep everything else the same.
@@ -92,6 +93,9 @@ def read_reply(raw_text: str) -> Dict[str, str]:
         else:
             raise ValueError("The AI reply did not contain a web page")
 
+    # Ensure any legacy NxtBuild mentions in generated output are replaced with BuildNest
+    html = re.sub(r"nxt\s*[-_]?\s*build", "BuildNest", html, flags=re.IGNORECASE)
+
     title_match = re.search(r"TITLE:\s*(.+)", header, flags=re.IGNORECASE)
     summary_match = re.search(r"SUMMARY:\s*(.+)", header, flags=re.IGNORECASE)
 
@@ -109,6 +113,17 @@ def read_reply(raw_text: str) -> Dict[str, str]:
     }
 
 
+def is_quota_or_rate_limit_error(error: Exception) -> bool:
+    """
+    Checks if an error is caused by rate limits, token exhaustion, or service unavailability.
+    Matches HTTP 429, RESOURCE_EXHAUSTED, token quota limits, rate limits, or temporary 503 errors.
+    """
+    err_text = str(error).lower()
+    return any(keyword in err_text for keyword in [
+        "429", "quota", "resource_exhausted", "tokens", "rate limit", "rate_limit", "503", "unavailable"
+    ])
+
+
 def get_genai_client() -> genai.Client:
     if not settings.GEMINI_API_KEY:
         raise ValueError("GEMINI_API_KEY is missing in your configuration or .env file.")
@@ -124,7 +139,13 @@ async def generate_page(
     history: Optional[List[dict]] = None
 ) -> Dict[str, str]:
     """
-    Invokes Gemini asynchronously to generate or edit single-file HTML pages.
+    Generates or edits a single-file HTML web page with Automated Model Cascading.
+
+    Cascade Flow:
+    1. First attempts PRIMARY_GEMINI_MODEL (e.g. gemini-2.5-flash-lite).
+    2. If the primary model encounters a rate limit (429), token exhaustion, or MAX_TOKENS cutoff,
+       it automatically cascades to FALLBACK_GEMINI_MODEL (e.g. gemini-2.5-flash).
+    3. The client receives a seamless response without seeing a rate limit error.
     """
     client = get_genai_client()
 
@@ -149,14 +170,55 @@ async def generate_page(
         max_output_tokens=30000,
     )
 
-    try:
-        response = await client.aio.models.generate_content(
-            model=settings.GEMINI_MODEL,
-            contents=user_message,
-            config=config,
-        )
-        raw_text = response.text or ""
-        return read_reply(raw_text)
-    except Exception as e:
-        logger.error(f"Gemini API invocation failed: {e}")
-        raise e
+    # Automated Model Cascading: Primary model first, then Fallback model
+    models_to_try = [settings.PRIMARY_GEMINI_MODEL, settings.FALLBACK_GEMINI_MODEL]
+    last_error = None
+
+    for index, model_name in enumerate(models_to_try):
+        is_fallback = index > 0
+        try:
+            logger.info(f"Generating page using model: {model_name} (cascade step {index + 1}/{len(models_to_try)})")
+
+            response = await client.aio.models.generate_content(
+                model=model_name,
+                contents=user_message,
+                config=config,
+            )
+
+            # Scenario B: Check if the response was cut off mid-generation due to max output tokens
+            candidate = response.candidates[0] if (response.candidates and len(response.candidates) > 0) else None
+            finish_reason = getattr(candidate, "finish_reason", None)
+            if finish_reason and str(finish_reason).upper() in ["MAX_TOKENS", "LENGTH"]:
+                logger.warning(
+                    f"Model '{model_name}' hit MAX_TOKENS cutoff. Output might be incomplete."
+                )
+                if index < len(models_to_try) - 1:
+                    logger.info(f"Cascading to fallback model '{models_to_try[index + 1]}' due to token cutoff...")
+                    continue
+
+            raw_text = response.text or ""
+            parsed = read_reply(raw_text)
+
+            if is_fallback:
+                logger.info(f"Successfully generated page using fallback model: '{model_name}'")
+
+            return parsed
+
+        except Exception as exc:
+            last_error = exc
+
+            # Scenario A: Quota or rate-limit exhaustion (HTTP 429 / RESOURCE_EXHAUSTED)
+            if is_quota_or_rate_limit_error(exc) and index < len(models_to_try) - 1:
+                next_model = models_to_try[index + 1]
+                logger.warning(
+                    f"Model '{model_name}' hit quota or rate limits: {exc}. "
+                    f"Automatically cascading to fallback model: '{next_model}'."
+                )
+                continue
+
+            # If it's a non-quota error or the fallback model also failed, log and re-raise
+            logger.error(f"Generation failed on model '{model_name}': {exc}")
+            raise exc
+
+    if last_error:
+        raise last_error
